@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE "Book" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "id" SERIAL NOT NULL,
     "title" TEXT NOT NULL,
     "author" TEXT NOT NULL,
     "genre" TEXT,
@@ -9,8 +9,10 @@ CREATE TABLE "Book" (
     "status" TEXT NOT NULL DEFAULT 'want_to_read',
     "rating" INTEGER,
     "notes" TEXT,
-    "startedAt" DATETIME,
-    "finishedAt" DATETIME,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "startedAt" TIMESTAMP(3),
+    "finishedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Book_pkey" PRIMARY KEY ("id")
 );
