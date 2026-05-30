@@ -1,0 +1,200 @@
+"use client";
+
+import { useState } from "react";
+
+interface Book {
+  id: number;
+  title: string;
+  author: string;
+  genre: string | null;
+  totalPages: number;
+  currentPage: number;
+  status: string;
+  rating: number | null;
+  notes: string | null;
+}
+
+interface Props {
+  book: Book;
+  onUpdate: () => void;
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  want_to_read: "Quero ler",
+  reading: "Lendo",
+  completed: "Concluído",
+};
+
+const STATUS_COLORS: Record<string, string> = {
+  want_to_read: "bg-gray-100 text-gray-600",
+  reading: "bg-blue-100 text-blue-700",
+  completed: "bg-green-100 text-green-700",
+};
+
+export default function BookCard({ book, onUpdate }: Props) {
+  const [expanded, setExpanded] = useState(false);
+  const [page, setPage] = useState(String(book.currentPage));
+  const [rating, setRating] = useState(book.rating || 0);
+  const [notes, setNotes] = useState(book.notes || "");
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const progress =
+    book.totalPages > 0
+      ? Math.round((book.currentPage / book.totalPages) * 100)
+      : 0;
+
+  async function patch(data: Record<string, unknown>) {
+    setSaving(true);
+    await fetch(`/api/books/${book.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    setSaving(false);
+    onUpdate();
+  }
+
+  async function handleDelete() {
+    if (!confirm(`Remover "${book.title}"?`)) return;
+    setDeleting(true);
+    await fetch(`/api/books/${book.id}`, { method: "DELETE" });
+    onUpdate();
+  }
+
+  async function handlePageSave() {
+    await patch({ currentPage: page });
+  }
+
+  async function handleStatus(status: string) {
+    await patch({ status });
+  }
+
+  async function handleSaveNotes() {
+    await patch({ rating, notes });
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <h3 className="font-bold text-gray-900 truncate">{book.title}</h3>
+          <p className="text-sm text-gray-500 truncate">{book.author}</p>
+          {book.genre && (
+            <span className="text-xs text-indigo-500 font-medium">{book.genre}</span>
+          )}
+        </div>
+        <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${STATUS_COLORS[book.status]}`}>
+          {STATUS_LABELS[book.status]}
+        </span>
+      </div>
+
+      {/* Progress bar */}
+      <div>
+        <div className="flex justify-between text-xs text-gray-500 mb-1">
+          <span>{book.currentPage} / {book.totalPages} páginas</span>
+          <span>{progress}%</span>
+        </div>
+        <div className="w-full bg-gray-100 rounded-full h-2">
+          <div
+            className="bg-indigo-500 h-2 rounded-full transition-all"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex gap-2 flex-wrap">
+        {book.status !== "reading" && book.status !== "completed" && (
+          <button
+            onClick={() => handleStatus("reading")}
+            className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full hover:bg-blue-100 transition"
+          >
+            Começar leitura
+          </button>
+        )}
+        {book.status === "reading" && (
+          <button
+            onClick={() => handleStatus("completed")}
+            className="text-xs bg-green-50 text-green-700 px-3 py-1 rounded-full hover:bg-green-100 transition"
+          >
+            Marcar concluído
+          </button>
+        )}
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="text-xs bg-gray-50 text-gray-600 px-3 py-1 rounded-full hover:bg-gray-100 transition ml-auto"
+        >
+          {expanded ? "Fechar" : "Detalhes"}
+        </button>
+        <button
+          onClick={handleDelete}
+          disabled={deleting}
+          className="text-xs text-red-400 hover:text-red-600 transition"
+        >
+          {deleting ? "..." : "Remover"}
+        </button>
+      </div>
+
+      {expanded && (
+        <div className="border-t border-gray-100 pt-3 space-y-3">
+          {/* Update page */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600 whitespace-nowrap">Página atual:</label>
+            <input
+              type="number"
+              min="0"
+              max={book.totalPages}
+              value={page}
+              onChange={(e) => setPage(e.target.value)}
+              className="border border-gray-200 rounded-lg px-2 py-1 w-20 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            />
+            <button
+              onClick={handlePageSave}
+              disabled={saving}
+              className="text-xs bg-indigo-600 text-white px-3 py-1 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
+            >
+              {saving ? "..." : "Salvar"}
+            </button>
+          </div>
+
+          {/* Rating */}
+          <div>
+            <label className="text-sm text-gray-600 block mb-1">Avaliação:</label>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => setRating(star === rating ? 0 : star)}
+                  className={`text-xl transition ${star <= rating ? "text-yellow-400" : "text-gray-300"}`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="text-sm text-gray-600 block mb-1">Notas pessoais:</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={3}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+              placeholder="Seus pensamentos sobre o livro..."
+            />
+          </div>
+
+          <button
+            onClick={handleSaveNotes}
+            disabled={saving}
+            className="w-full bg-indigo-600 text-white rounded-lg py-2 text-sm hover:bg-indigo-700 transition disabled:opacity-50"
+          >
+            {saving ? "Salvando..." : "Salvar avaliação e notas"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
