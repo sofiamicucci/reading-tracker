@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 interface Props {
   onClose: () => void;
   onAdded: () => void;
+  initialStatus?: string;
 }
 
 // Resultado normalizado (fonte única independente da API)
@@ -24,6 +25,8 @@ interface FormData {
   genre: string;
   totalPages: string;
   yearStarted: string;
+  status: string;
+  recommendedBy: string;
 }
 
 const GENRES = [
@@ -90,13 +93,25 @@ async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
   }
 }
 
-export default function AddBookModal({ onClose, onAdded }: Props) {
+const STATUS_OPTIONS = [
+  { value: "want_to_read", label: "Quero ler" },
+  { value: "reading", label: "Lendo" },
+  { value: "completed", label: "Concluído" },
+];
+
+export default function AddBookModal({ onClose, onAdded, initialStatus = "want_to_read" }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<BookResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [selected, setSelected] = useState<BookResult | null>(null);
   const [manual, setManual] = useState(false);
-  const [form, setForm] = useState<FormData>({ title: "", author: "", genre: "", totalPages: "", yearStarted: String(new Date().getFullYear()) });
+  const blankForm = (): FormData => ({
+    title: "", author: "", genre: "", totalPages: "",
+    yearStarted: String(new Date().getFullYear()),
+    status: initialStatus,
+    recommendedBy: "",
+  });
+  const [form, setForm] = useState<FormData>(blankForm);
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -145,6 +160,8 @@ export default function AddBookModal({ onClose, onAdded }: Props) {
       genre: "",
       totalPages: book.pages ? String(book.pages) : "",
       yearStarted: String(new Date().getFullYear()),
+      status: initialStatus,
+      recommendedBy: "",
     });
     setResults([]);
   }
@@ -152,14 +169,14 @@ export default function AddBookModal({ onClose, onAdded }: Props) {
   function handleManual() {
     setManual(true);
     setSelected(null);
-    setForm({ title: query, author: "", genre: "", totalPages: "", yearStarted: String(new Date().getFullYear()) });
+    setForm({ title: query, author: "", genre: "", totalPages: "", yearStarted: String(new Date().getFullYear()), status: initialStatus, recommendedBy: "" });
     setResults([]);
   }
 
   function handleBack() {
     setSelected(null);
     setManual(false);
-    setForm({ title: "", author: "", genre: "", totalPages: "", yearStarted: String(new Date().getFullYear()) });
+    setForm(blankForm());
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -294,6 +311,16 @@ export default function AddBookModal({ onClose, onAdded }: Props) {
               />
             </div>
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+              <select
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value })}
+              >
+                {STATUS_OPTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+            </div>
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Gênero</label>
               <select
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -303,6 +330,15 @@ export default function AddBookModal({ onClose, onAdded }: Props) {
                 <option value="">Selecione...</option>
                 {GENRES.map((g) => <option key={g} value={g}>{g}</option>)}
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Indicado por</label>
+              <input
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                value={form.recommendedBy}
+                onChange={(e) => setForm({ ...form, recommendedBy: e.target.value })}
+                placeholder="Nome de quem indicou (opcional)"
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Ano que comecei a ler</label>

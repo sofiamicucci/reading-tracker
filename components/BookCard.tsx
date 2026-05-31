@@ -13,6 +13,7 @@ interface Book {
   rating: number | null;
   notes: string | null;
   yearStarted: number | null;
+  recommendedBy: string | null;
 }
 
 interface Props {
@@ -87,6 +88,9 @@ export default function BookCard({ book, onUpdate }: Props) {
             )}
             {book.yearStarted && (
               <span className="text-xs text-gray-400">📅 {book.yearStarted}</span>
+            )}
+            {book.recommendedBy && (
+              <span className="text-xs text-gray-400">👤 {book.recommendedBy}</span>
             )}
           </div>
         </div>

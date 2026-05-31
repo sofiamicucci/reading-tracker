@@ -19,6 +19,7 @@ interface Book {
   rating: number | null;
   notes: string | null;
   yearStarted: number | null;
+  recommendedBy: string | null;
 }
 
 const FILTERS = [
@@ -180,6 +181,12 @@ export default function Home() {
         <AddBookModal
           onClose={() => setShowModal(false)}
           onAdded={fetchBooks}
+          initialStatus={
+            filter === "reading" ? "reading"
+            : filter === "completed" ? "completed"
+            : filter === "want_to_read" ? "want_to_read"
+            : "want_to_read"
+          }
         />
       )}
     </main>

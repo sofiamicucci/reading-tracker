@@ -32,6 +32,7 @@ export async function PATCH(
   if (data.genre !== undefined) updateData.genre = data.genre;
   if (data.totalPages !== undefined) updateData.totalPages = Number(data.totalPages);
   if (data.yearStarted !== undefined) updateData.yearStarted = data.yearStarted ? Number(data.yearStarted) : null;
+  if (data.recommendedBy !== undefined) updateData.recommendedBy = data.recommendedBy || null;
 
   if (data.status === "reading" && !book.startedAt) updateData.startedAt = new Date();
   if (data.status === "completed") {

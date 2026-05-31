@@ -30,7 +30,8 @@ export async function POST(req: Request) {
       genre: data.genre || null,
       totalPages: Number(data.totalPages),
       yearStarted: data.yearStarted ? Number(data.yearStarted) : null,
-      status: "want_to_read",
+      recommendedBy: data.recommendedBy || null,
+      status: data.status ?? "want_to_read",
       userId: session.user.id,
     },
   });
