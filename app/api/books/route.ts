@@ -23,15 +23,19 @@ export async function POST(req: Request) {
   }
 
   const data = await req.json();
+  const status = data.status ?? "want_to_read";
+  const totalPages = Number(data.totalPages);
   const book = await prisma.book.create({
     data: {
       title: data.title,
       author: data.author,
       genre: data.genre || null,
-      totalPages: Number(data.totalPages),
+      totalPages,
+      currentPage: status === "completed" ? totalPages : 0,
       yearStarted: data.yearStarted ? Number(data.yearStarted) : null,
       recommendedBy: data.recommendedBy || null,
-      status: data.status ?? "want_to_read",
+      status,
+      finishedAt: status === "completed" ? new Date() : null,
       userId: session.user.id,
     },
   });
