@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import AddBookModal from "@/components/AddBookModal";
 import BookCard from "@/components/BookCard";
 import Indicators from "@/components/Indicators";
+import StarFilter from "@/components/StarFilter";
 
 interface Book {
   id: number;
@@ -33,7 +34,7 @@ export default function Home() {
   const router = useRouter();
   const [books, setBooks] = useState<Book[]>([]);
   const [filter, setFilter] = useState("all");
-  const [ratingFilter, setRatingFilter] = useState<number | "none" | null>(null);
+  const [ratingFilter, setRatingFilter] = useState<number | null>(null);
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
@@ -66,9 +67,7 @@ export default function Home() {
       : books.filter((b) => b.status === filter);
 
     if (isCompleted && ratingFilter !== null) {
-      list = ratingFilter === "none"
-        ? list.filter((b) => !b.rating)
-        : list.filter((b) => b.rating === ratingFilter);
+      list = list.filter((b) => b.rating === ratingFilter);
     }
 
     return list;
@@ -149,29 +148,7 @@ export default function Home() {
 
         {/* Rating sub-filter — só aparece na aba Concluídos */}
         {isCompleted && (
-          <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
-            {[
-              { value: null, label: "Todas as avaliações" },
-              { value: "none", label: "Sem avaliação" },
-              { value: 1, label: "★" },
-              { value: 2, label: "★★" },
-              { value: 3, label: "★★★" },
-              { value: 4, label: "★★★★" },
-              { value: 5, label: "★★★★★" },
-            ].map((opt) => (
-              <button
-                key={String(opt.value)}
-                onClick={() => setRatingFilter(opt.value as number | "none" | null)}
-                className={`px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap transition ${
-                  ratingFilter === opt.value
-                    ? "bg-yellow-400 text-white"
-                    : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+          <StarFilter value={ratingFilter as number | null} onChange={setRatingFilter} />
         )}
 
         {/* Content */}
