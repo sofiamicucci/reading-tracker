@@ -29,6 +29,15 @@ export default function StarFilter({ value, onChange }: Props) {
           ★
         </button>
       ))}
+      {value !== null && (
+        <button
+          onClick={() => onChange(null)}
+          className="ml-1 text-gray-400 hover:text-gray-600 text-sm leading-none transition-colors"
+          title="Limpar filtro"
+        >
+          ✕
+        </button>
+      )}
     </div>
   );
 }
