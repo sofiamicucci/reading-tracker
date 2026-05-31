@@ -66,16 +66,12 @@ export default function BookCard({ book, onUpdate }: Props) {
     onUpdate();
   }
 
-  async function handlePageSave() {
-    await patch({ currentPage: page });
-  }
-
   async function handleStatus(status: string) {
     await patch({ status });
   }
 
   async function handleSaveDetails() {
-    await patch({ rating, notes, yearStarted: yearStarted || null });
+    await patch({ currentPage: page, rating, notes, yearStarted: yearStarted || null });
   }
 
   return (
@@ -158,13 +154,6 @@ export default function BookCard({ book, onUpdate }: Props) {
               onChange={(e) => setPage(e.target.value)}
               className="border border-gray-200 rounded-lg px-2 py-1 w-20 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
             />
-            <button
-              onClick={handlePageSave}
-              disabled={saving}
-              className="text-xs bg-indigo-600 text-white px-3 py-1 rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
-            >
-              {saving ? "..." : "Salvar"}
-            </button>
           </div>
 
           {/* Year started */}
