@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
+import BackToLibrary from "@/components/BackToLibrary";
 
 const STATUS_LABELS: Record<string, string> = {
   want_to_read: "Quero ler",
@@ -55,6 +56,7 @@ export default async function PerfilPage({
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="max-w-2xl mx-auto px-4 py-8">
+        <BackToLibrary />
         {/* Header */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
           <div className="flex items-center gap-4">

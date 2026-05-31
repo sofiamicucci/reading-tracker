@@ -84,21 +84,23 @@ export default function Home() {
     <main className="min-h-screen bg-gray-50">
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
+        <div className="mb-8">
+          {/* Título */}
+          <div className="mb-3">
             <h1 className="text-2xl font-bold text-gray-900">📚 Minhas Leituras</h1>
             <p className="text-sm text-gray-500 mt-1">
               {session?.user?.name || session?.user?.email} · {books.length} livro{books.length !== 1 ? "s" : ""}
             </p>
           </div>
-          <div className="flex gap-2">
-            <NotificationBell />
+          {/* Botões — linha horizontal em qualquer viewport */}
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setShowModal(true)}
               className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition shadow-sm"
             >
               + Adicionar
             </button>
+            <NotificationBell />
             <Link
               href="/configuracoes"
               className="border border-gray-200 text-gray-500 px-3 py-2 rounded-xl text-sm hover:bg-gray-100 transition"
