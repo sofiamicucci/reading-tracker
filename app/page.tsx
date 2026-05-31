@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import AddBookModal from "@/components/AddBookModal";
 import BookCard from "@/components/BookCard";
 import Indicators from "@/components/Indicators";
@@ -27,18 +29,32 @@ const FILTERS = [
 ];
 
 export default function Home() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [books, setBooks] = useState<Book[]>([]);
   const [filter, setFilter] = useState("all");
   const [showModal, setShowModal] = useState(false);
 
+  useEffect(() => {
+    if (status === "unauthenticated") router.push("/login");
+  }, [status, router]);
+
   const fetchBooks = useCallback(async () => {
     const res = await fetch("/api/books");
-    setBooks(await res.json());
+    if (res.ok) setBooks(await res.json());
   }, []);
 
   useEffect(() => {
-    fetchBooks();
-  }, [fetchBooks]);
+    if (status === "authenticated") fetchBooks();
+  }, [status, fetchBooks]);
+
+  if (status === "loading" || status === "unauthenticated") {
+    return (
+      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-400 text-sm">Carregando...</p>
+      </main>
+    );
+  }
 
   const isIndicators = filter === "indicators";
   const filtered =
@@ -52,19 +68,32 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-gray-50">
       <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">📚 Minhas Leituras</h1>
-            <p className="text-sm text-gray-500 mt-1">{books.length} livro{books.length !== 1 ? "s" : ""} na biblioteca</p>
+            <p className="text-sm text-gray-500 mt-1">
+              {session?.user?.name || session?.user?.email} · {books.length} livro{books.length !== 1 ? "s" : ""}
+            </p>
           </div>
-          <button
-            onClick={() => setShowModal(true)}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition shadow-sm"
-          >
-            + Adicionar livro
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowModal(true)}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition shadow-sm"
+            >
+              + Adicionar
+            </button>
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="border border-gray-200 text-gray-500 px-3 py-2 rounded-xl text-sm hover:bg-gray-100 transition"
+              title="Sair"
+            >
+              Sair
+            </button>
+          </div>
         </div>
 
+        {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           <div className="bg-white rounded-xl p-4 text-center shadow-sm border border-gray-100">
             <p className="text-2xl font-bold text-blue-600">{reading.length}</p>
@@ -82,6 +111,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Filters */}
         <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
           {FILTERS.map((f) => (
             <button
@@ -105,6 +135,7 @@ export default function Home() {
           ))}
         </div>
 
+        {/* Content */}
         {isIndicators ? (
           <Indicators books={books} />
         ) : filtered.length === 0 ? (
