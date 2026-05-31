@@ -12,6 +12,7 @@ interface Book {
   status: string;
   rating: number | null;
   notes: string | null;
+  yearStarted: number | null;
 }
 
 interface Props {
@@ -36,6 +37,9 @@ export default function BookCard({ book, onUpdate }: Props) {
   const [page, setPage] = useState(String(book.currentPage));
   const [rating, setRating] = useState(book.rating || 0);
   const [notes, setNotes] = useState(book.notes || "");
+  const [yearStarted, setYearStarted] = useState(
+    book.yearStarted ? String(book.yearStarted) : ""
+  );
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -70,8 +74,8 @@ export default function BookCard({ book, onUpdate }: Props) {
     await patch({ status });
   }
 
-  async function handleSaveNotes() {
-    await patch({ rating, notes });
+  async function handleSaveDetails() {
+    await patch({ rating, notes, yearStarted: yearStarted || null });
   }
 
   return (
@@ -80,9 +84,14 @@ export default function BookCard({ book, onUpdate }: Props) {
         <div className="flex-1 min-w-0">
           <h3 className="font-bold text-gray-900 truncate">{book.title}</h3>
           <p className="text-sm text-gray-500 truncate">{book.author}</p>
-          {book.genre && (
-            <span className="text-xs text-indigo-500 font-medium">{book.genre}</span>
-          )}
+          <div className="flex gap-2 flex-wrap mt-0.5">
+            {book.genre && (
+              <span className="text-xs text-indigo-500 font-medium">{book.genre}</span>
+            )}
+            {book.yearStarted && (
+              <span className="text-xs text-gray-400">📅 {book.yearStarted}</span>
+            )}
+          </div>
         </div>
         <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${STATUS_COLORS[book.status]}`}>
           {STATUS_LABELS[book.status]}
@@ -158,6 +167,20 @@ export default function BookCard({ book, onUpdate }: Props) {
             </button>
           </div>
 
+          {/* Year started */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600 whitespace-nowrap">Ano de início:</label>
+            <input
+              type="number"
+              min="1900"
+              max={new Date().getFullYear()}
+              value={yearStarted}
+              onChange={(e) => setYearStarted(e.target.value)}
+              placeholder={String(new Date().getFullYear())}
+              className="border border-gray-200 rounded-lg px-2 py-1 w-24 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            />
+          </div>
+
           {/* Rating */}
           <div>
             <label className="text-sm text-gray-600 block mb-1">Avaliação:</label>
@@ -187,11 +210,11 @@ export default function BookCard({ book, onUpdate }: Props) {
           </div>
 
           <button
-            onClick={handleSaveNotes}
+            onClick={handleSaveDetails}
             disabled={saving}
             className="w-full bg-indigo-600 text-white rounded-lg py-2 text-sm hover:bg-indigo-700 transition disabled:opacity-50"
           >
-            {saving ? "Salvando..." : "Salvar avaliação e notas"}
+            {saving ? "Salvando..." : "Salvar detalhes"}
           </button>
         </div>
       )}

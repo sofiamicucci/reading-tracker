@@ -14,6 +14,7 @@ export async function POST(req: Request) {
       author: data.author,
       genre: data.genre || null,
       totalPages: Number(data.totalPages),
+      yearStarted: data.yearStarted ? Number(data.yearStarted) : null,
       status: "want_to_read",
     },
   });

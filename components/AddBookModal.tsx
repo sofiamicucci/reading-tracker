@@ -21,6 +21,7 @@ interface FormData {
   author: string;
   genre: string;
   totalPages: string;
+  yearStarted: string;
 }
 
 const GENRES = [
@@ -34,7 +35,7 @@ export default function AddBookModal({ onClose, onAdded }: Props) {
   const [searching, setSearching] = useState(false);
   const [selected, setSelected] = useState<OLResult | null>(null);
   const [manual, setManual] = useState(false);
-  const [form, setForm] = useState<FormData>({ title: "", author: "", genre: "", totalPages: "" });
+  const [form, setForm] = useState<FormData>({ title: "", author: "", genre: "", totalPages: "", yearStarted: String(new Date().getFullYear()) });
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -66,6 +67,7 @@ export default function AddBookModal({ onClose, onAdded }: Props) {
       author: book.author_name?.[0] ?? "",
       genre: "",
       totalPages: book.number_of_pages_median ? String(book.number_of_pages_median) : "",
+      yearStarted: String(new Date().getFullYear()),
     });
     setResults([]);
   }
@@ -73,14 +75,14 @@ export default function AddBookModal({ onClose, onAdded }: Props) {
   function handleManual() {
     setManual(true);
     setSelected(null);
-    setForm({ title: query, author: "", genre: "", totalPages: "" });
+    setForm({ title: query, author: "", genre: "", totalPages: "", yearStarted: String(new Date().getFullYear()) });
     setResults([]);
   }
 
   function handleBack() {
     setSelected(null);
     setManual(false);
-    setForm({ title: "", author: "", genre: "", totalPages: "" });
+    setForm({ title: "", author: "", genre: "", totalPages: "", yearStarted: String(new Date().getFullYear()) });
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -224,6 +226,18 @@ export default function AddBookModal({ onClose, onAdded }: Props) {
                 <option value="">Selecione...</option>
                 {GENRES.map((g) => <option key={g} value={g}>{g}</option>)}
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ano que comecei a ler</label>
+              <input
+                type="number"
+                min="1900"
+                max={new Date().getFullYear()}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                value={form.yearStarted}
+                onChange={(e) => setForm({ ...form, yearStarted: e.target.value })}
+                placeholder={String(new Date().getFullYear())}
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

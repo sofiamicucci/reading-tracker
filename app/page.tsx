@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import AddBookModal from "@/components/AddBookModal";
 import BookCard from "@/components/BookCard";
+import Indicators from "@/components/Indicators";
 
 interface Book {
   id: number;
@@ -14,6 +15,7 @@ interface Book {
   status: string;
   rating: number | null;
   notes: string | null;
+  yearStarted: number | null;
 }
 
 const FILTERS = [
@@ -21,6 +23,7 @@ const FILTERS = [
   { key: "reading", label: "Lendo" },
   { key: "want_to_read", label: "Quero ler" },
   { key: "completed", label: "Concluídos" },
+  { key: "indicators", label: "📊 Indicadores" },
 ];
 
 export default function Home() {
@@ -37,8 +40,11 @@ export default function Home() {
     fetchBooks();
   }, [fetchBooks]);
 
+  const isIndicators = filter === "indicators";
   const filtered =
-    filter === "all" ? books : books.filter((b) => b.status === filter);
+    filter === "all" || isIndicators
+      ? books
+      : books.filter((b) => b.status === filter);
 
   const reading = books.filter((b) => b.status === "reading");
   const completed = books.filter((b) => b.status === "completed");
@@ -88,16 +94,20 @@ export default function Home() {
               }`}
             >
               {f.label}
-              <span className="ml-1.5 text-xs opacity-70">
-                {f.key === "all"
-                  ? books.length
-                  : books.filter((b) => b.status === f.key).length}
-              </span>
+              {f.key !== "indicators" && (
+                <span className="ml-1.5 text-xs opacity-70">
+                  {f.key === "all"
+                    ? books.length
+                    : books.filter((b) => b.status === f.key).length}
+                </span>
+              )}
             </button>
           ))}
         </div>
 
-        {filtered.length === 0 ? (
+        {isIndicators ? (
+          <Indicators books={books} />
+        ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-gray-400">
             <p className="text-4xl mb-3">📖</p>
             <p className="text-sm">Nenhum livro aqui ainda.</p>

@@ -17,6 +17,7 @@ model Book {
   status      String    @default("want_to_read")
   rating      Int?
   notes       String?
+  yearStarted Int?
   startedAt   DateTime?
   finishedAt  DateTime?
   createdAt   DateTime  @default(now())
