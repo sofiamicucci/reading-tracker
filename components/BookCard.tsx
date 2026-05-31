@@ -72,6 +72,7 @@ export default function BookCard({ book, onUpdate }: Props) {
 
   async function handleSaveDetails() {
     await patch({ currentPage: page, rating, notes, yearStarted: yearStarted || null });
+    setExpanded(false);
   }
 
   return (
