@@ -27,6 +27,7 @@ interface FormData {
   yearStarted: string;
   status: string;
   recommendedBy: string;
+  rating: number;
 }
 
 const GENRES = [
@@ -110,6 +111,7 @@ export default function AddBookModal({ onClose, onAdded, initialStatus = "want_t
     yearStarted: String(new Date().getFullYear()),
     status: initialStatus,
     recommendedBy: "",
+    rating: 0,
   });
   const [form, setForm] = useState<FormData>(blankForm);
   const [loading, setLoading] = useState(false);
@@ -162,6 +164,7 @@ export default function AddBookModal({ onClose, onAdded, initialStatus = "want_t
       yearStarted: String(new Date().getFullYear()),
       status: initialStatus,
       recommendedBy: "",
+      rating: 0,
     });
     setResults([]);
   }
@@ -169,7 +172,7 @@ export default function AddBookModal({ onClose, onAdded, initialStatus = "want_t
   function handleManual() {
     setManual(true);
     setSelected(null);
-    setForm({ title: query, author: "", genre: "", totalPages: "", yearStarted: String(new Date().getFullYear()), status: initialStatus, recommendedBy: "" });
+    setForm({ title: query, author: "", genre: "", totalPages: "", yearStarted: String(new Date().getFullYear()), status: initialStatus, recommendedBy: "", rating: 0 });
     setResults([]);
   }
 
@@ -330,6 +333,21 @@ export default function AddBookModal({ onClose, onAdded, initialStatus = "want_t
                 <option value="">Selecione...</option>
                 {GENRES.map((g) => <option key={g} value={g}>{g}</option>)}
               </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Avaliação</label>
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setForm({ ...form, rating: form.rating === star ? 0 : star })}
+                    className={`text-2xl leading-none transition-colors ${star <= form.rating ? "text-yellow-400" : "text-gray-300"}`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Indicado por</label>
