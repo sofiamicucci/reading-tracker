@@ -27,6 +27,7 @@ interface FormData {
   status: string;
   recommendedBy: string;
   rating: number;
+  coverUrl: string;
 }
 
 const GENRES = [
@@ -53,6 +54,7 @@ export default function AddBookModal({ onClose, onAdded, initialStatus = "want_t
     status: initialStatus,
     recommendedBy: "",
     rating: 0,
+    coverUrl: "",
   });
   const [form, setForm] = useState<FormData>(blankForm);
   const [loading, setLoading] = useState(false);
@@ -87,6 +89,7 @@ export default function AddBookModal({ onClose, onAdded, initialStatus = "want_t
       status: initialStatus,
       recommendedBy: "",
       rating: 0,
+      coverUrl: book.cover ? book.cover.replace("-S.jpg", "-M.jpg") : "",
     });
     setResults([]);
   }
@@ -94,7 +97,7 @@ export default function AddBookModal({ onClose, onAdded, initialStatus = "want_t
   function handleManual() {
     setManual(true);
     setSelected(null);
-    setForm({ title: query, author: "", genre: "", totalPages: "", yearStarted: String(new Date().getFullYear()), status: initialStatus, recommendedBy: "", rating: 0 });
+    setForm({ title: query, author: "", genre: "", totalPages: "", yearStarted: String(new Date().getFullYear()), status: initialStatus, recommendedBy: "", rating: 0, coverUrl: "" });
     setResults([]);
   }
 
@@ -209,10 +212,10 @@ export default function AddBookModal({ onClose, onAdded, initialStatus = "want_t
         ) : (
           /* Confirmation / manual form */
           <form onSubmit={handleSubmit} className="space-y-4">
-            {selected?.cover && (
+            {form.coverUrl && (
               <div className="flex justify-center">
                 <img
-                  src={selected.cover.replace("-S.jpg", "-M.jpg")}
+                  src={form.coverUrl}
                   alt={form.title}
                   className="h-32 rounded shadow"
                 />

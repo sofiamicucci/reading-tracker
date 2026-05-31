@@ -14,6 +14,7 @@ interface Book {
   notes: string | null;
   yearStarted: number | null;
   recommendedBy: string | null;
+  coverUrl: string | null;
 }
 
 interface Props {
@@ -78,25 +79,45 @@ export default function BookCard({ book, onUpdate }: Props) {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-3">
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start gap-3">
+        {/* Cover */}
+        <div className="flex-shrink-0">
+          {book.coverUrl ? (
+            <img
+              src={book.coverUrl}
+              alt={book.title}
+              className="w-[60px] h-[90px] object-cover rounded-lg shadow-sm"
+            />
+          ) : (
+            <div className="w-[60px] h-[90px] bg-gray-100 rounded-lg flex items-center justify-center text-gray-300 text-2xl shadow-sm">
+              📖
+            </div>
+          )}
+        </div>
+
+        {/* Info */}
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-gray-900 truncate">{book.title}</h3>
-          <p className="text-sm text-gray-500 truncate">{book.author}</p>
-          <div className="flex gap-2 flex-wrap mt-0.5">
-            {book.genre && (
-              <span className="text-xs text-indigo-500 font-medium">{book.genre}</span>
-            )}
-            {book.yearStarted && (
-              <span className="text-xs text-gray-400">📅 {book.yearStarted}</span>
-            )}
-            {book.recommendedBy && (
-              <span className="text-xs text-gray-400">👤 {book.recommendedBy}</span>
-            )}
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <h3 className="font-bold text-gray-900 truncate">{book.title}</h3>
+              <p className="text-sm text-gray-500 truncate">{book.author}</p>
+              <div className="flex gap-2 flex-wrap mt-0.5">
+                {book.genre && (
+                  <span className="text-xs text-indigo-500 font-medium">{book.genre}</span>
+                )}
+                {book.yearStarted && (
+                  <span className="text-xs text-gray-400">📅 {book.yearStarted}</span>
+                )}
+                {book.recommendedBy && (
+                  <span className="text-xs text-gray-400">👤 {book.recommendedBy}</span>
+                )}
+              </div>
+            </div>
+            <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${STATUS_COLORS[book.status]}`}>
+              {STATUS_LABELS[book.status]}
+            </span>
           </div>
         </div>
-        <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${STATUS_COLORS[book.status]}`}>
-          {STATUS_LABELS[book.status]}
-        </span>
       </div>
 
       {/* Progress bar */}

@@ -20,6 +20,7 @@ interface Book {
   notes: string | null;
   yearStarted: number | null;
   recommendedBy: string | null;
+  coverUrl: string | null;
 }
 
 const FILTERS = [

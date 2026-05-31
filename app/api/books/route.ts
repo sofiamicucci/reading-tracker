@@ -34,6 +34,7 @@ export async function POST(req: Request) {
       currentPage: status === "completed" ? totalPages : 0,
       yearStarted: data.yearStarted ? Number(data.yearStarted) : null,
       recommendedBy: data.recommendedBy || null,
+      coverUrl: data.coverUrl || null,
       rating: data.rating ? Number(data.rating) : null,
       status,
       finishedAt: status === "completed" ? new Date() : null,
