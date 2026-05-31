@@ -8,6 +8,7 @@ import BookCard from "@/components/BookCard";
 import Indicators from "@/components/Indicators";
 import StarFilter from "@/components/StarFilter";
 import Link from "next/link";
+import NotificationBell from "@/components/NotificationBell";
 
 interface Book {
   id: number;
@@ -91,6 +92,7 @@ export default function Home() {
             </p>
           </div>
           <div className="flex gap-2">
+            <NotificationBell />
             <button
               onClick={() => setShowModal(true)}
               className="bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition shadow-sm"
