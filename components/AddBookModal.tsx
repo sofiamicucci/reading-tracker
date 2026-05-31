@@ -7,13 +7,15 @@ interface Props {
   onAdded: () => void;
 }
 
-interface OLResult {
-  key: string;
+// Resultado normalizado (fonte única independente da API)
+interface BookResult {
+  id: string;
   title: string;
-  author_name?: string[];
-  first_publish_year?: number;
-  number_of_pages_median?: number;
-  cover_i?: number;
+  author: string;
+  year?: number;
+  pages?: number;
+  cover?: string;
+  source: "google" | "openlibrary";
 }
 
 interface FormData {
@@ -29,11 +31,70 @@ const GENRES = [
   "Biografia", "Autoajuda", "Romance", "Terror", "Outro",
 ];
 
+// Normaliza resultados do Google Books
+function fromGoogle(items: unknown[]): BookResult[] {
+  return (items ?? []).map((item: unknown) => {
+    const i = item as { id: string; volumeInfo: { title: string; authors?: string[]; publishedDate?: string; pageCount?: number; imageLinks?: { thumbnail?: string } } };
+    const v = i.volumeInfo;
+    return {
+      id: `gb-${i.id}`,
+      title: v.title ?? "",
+      author: v.authors?.[0] ?? "",
+      year: v.publishedDate ? Number(v.publishedDate.slice(0, 4)) : undefined,
+      pages: v.pageCount || undefined,
+      cover: v.imageLinks?.thumbnail?.replace("http://", "https://"),
+      source: "google" as const,
+    };
+  }).filter((b) => b.title);
+}
+
+// Normaliza resultados da Open Library
+function fromOpenLibrary(docs: unknown[]): BookResult[] {
+  return (docs ?? []).map((doc: unknown) => {
+    const d = doc as { key: string; title: string; author_name?: string[]; first_publish_year?: number; number_of_pages_median?: number; cover_i?: number };
+    return {
+      id: `ol-${d.key}`,
+      title: d.title ?? "",
+      author: d.author_name?.[0] ?? "",
+      year: d.first_publish_year,
+      pages: d.number_of_pages_median || undefined,
+      cover: d.cover_i ? `https://covers.openlibrary.org/b/id/${d.cover_i}-S.jpg` : undefined,
+      source: "openlibrary" as const,
+    };
+  }).filter((b) => b.title);
+}
+
+// Combina resultados priorizando Google Books e remove duplicatas
+function mergeResults(google: BookResult[], ol: BookResult[]): BookResult[] {
+  const seen = new Set<string>();
+  const merged: BookResult[] = [];
+
+  for (const book of [...google, ...ol]) {
+    const key = `${book.title.toLowerCase().trim()}|${book.author.toLowerCase().trim()}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      merged.push(book);
+    }
+  }
+
+  return merged.slice(0, 8);
+}
+
+async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  try {
+    return await fetch(url, { signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export default function AddBookModal({ onClose, onAdded }: Props) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<OLResult[]>([]);
+  const [results, setResults] = useState<BookResult[]>([]);
   const [searching, setSearching] = useState(false);
-  const [selected, setSelected] = useState<OLResult | null>(null);
+  const [selected, setSelected] = useState<BookResult | null>(null);
   const [manual, setManual] = useState(false);
   const [form, setForm] = useState<FormData>({ title: "", author: "", genre: "", totalPages: "", yearStarted: String(new Date().getFullYear()) });
   const [loading, setLoading] = useState(false);
@@ -47,11 +108,27 @@ export default function AddBookModal({ onClose, onAdded }: Props) {
     debounceRef.current = setTimeout(async () => {
       setSearching(true);
       try {
-        const res = await fetch(
-          `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=8&fields=key,title,author_name,first_publish_year,number_of_pages_median,cover_i`
-        );
-        const json = await res.json();
-        setResults(json.docs || []);
+        const q = encodeURIComponent(query);
+
+        const [googleRes, olRes] = await Promise.allSettled([
+          fetchWithTimeout(
+            `https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=5&langRestrict=pt`,
+            3000
+          ).then((r) => r.json()),
+          fetchWithTimeout(
+            `https://openlibrary.org/search.json?q=${q}&limit=5&lang=por&fields=key,title,author_name,first_publish_year,number_of_pages_median,cover_i`,
+            3000
+          ).then((r) => r.json()),
+        ]);
+
+        const googleBooks = googleRes.status === "fulfilled"
+          ? fromGoogle(googleRes.value?.items ?? [])
+          : [];
+        const olBooks = olRes.status === "fulfilled"
+          ? fromOpenLibrary(olRes.value?.docs ?? [])
+          : [];
+
+        setResults(mergeResults(googleBooks, olBooks));
       } catch {
         setResults([]);
       } finally {
@@ -60,13 +137,13 @@ export default function AddBookModal({ onClose, onAdded }: Props) {
     }, 400);
   }, [query, manual, selected]);
 
-  function handleSelect(book: OLResult) {
+  function handleSelect(book: BookResult) {
     setSelected(book);
     setForm({
       title: book.title,
-      author: book.author_name?.[0] ?? "",
+      author: book.author,
       genre: "",
-      totalPages: book.number_of_pages_median ? String(book.number_of_pages_median) : "",
+      totalPages: book.pages ? String(book.pages) : "",
       yearStarted: String(new Date().getFullYear()),
     });
     setResults([]);
@@ -135,14 +212,14 @@ export default function AddBookModal({ onClose, onAdded }: Props) {
             {results.length > 0 && (
               <ul className="space-y-2 max-h-72 overflow-y-auto mb-3">
                 {results.map((book) => (
-                  <li key={book.key}>
+                  <li key={book.id}>
                     <button
                       onClick={() => handleSelect(book)}
                       className="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-indigo-50 transition text-left"
                     >
-                      {book.cover_i ? (
+                      {book.cover ? (
                         <img
-                          src={`https://covers.openlibrary.org/b/id/${book.cover_i}-S.jpg`}
+                          src={book.cover}
                           alt={book.title}
                           className="w-10 h-14 object-cover rounded flex-shrink-0"
                         />
@@ -154,11 +231,11 @@ export default function AddBookModal({ onClose, onAdded }: Props) {
                       <div className="min-w-0">
                         <p className="font-medium text-gray-800 truncate">{book.title}</p>
                         <p className="text-sm text-gray-500 truncate">
-                          {book.author_name?.[0] ?? "Autor desconhecido"}
+                          {book.author || "Autor desconhecido"}
                         </p>
                         <p className="text-xs text-gray-400">
-                          {book.first_publish_year ?? ""}
-                          {book.number_of_pages_median ? ` · ${book.number_of_pages_median} págs.` : ""}
+                          {book.year ?? ""}
+                          {book.pages ? ` · ${book.pages} págs.` : ""}
                         </p>
                       </div>
                     </button>
@@ -190,10 +267,10 @@ export default function AddBookModal({ onClose, onAdded }: Props) {
         ) : (
           /* Confirmation / manual form */
           <form onSubmit={handleSubmit} className="space-y-4">
-            {selected?.cover_i && (
+            {selected?.cover && (
               <div className="flex justify-center">
                 <img
-                  src={`https://covers.openlibrary.org/b/id/${selected.cover_i}-M.jpg`}
+                  src={selected.cover.replace("-S.jpg", "-M.jpg")}
                   alt={form.title}
                   className="h-32 rounded shadow"
                 />
@@ -242,8 +319,8 @@ export default function AddBookModal({ onClose, onAdded }: Props) {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Total de páginas *
-                {selected && !selected.number_of_pages_median && (
-                  <span className="ml-2 text-xs text-amber-500">não encontrado na busca — preencha manualmente</span>
+                {selected && !selected.pages && (
+                  <span className="ml-2 text-xs text-amber-500">não encontrado — preencha manualmente</span>
                 )}
               </label>
               <input
