@@ -146,6 +146,13 @@ export default function BookCard({ book, onUpdate }: Props) {
         </div>
       </div>
 
+      {/* Notes preview (renderizado com menções clicáveis) */}
+      {book.notes && (
+        <p className="text-sm text-gray-500 italic leading-relaxed">
+          {renderMentions(book.notes)}
+        </p>
+      )}
+
       {/* Actions */}
       <div className="flex gap-2 flex-wrap">
         {book.status !== "reading" && book.status !== "completed" && (
