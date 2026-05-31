@@ -67,6 +67,7 @@ model Book {
   notes       String?
   yearStarted   Int?
   recommendedBy String?
+  coverUrl      String?
   startedAt     DateTime?
   finishedAt  DateTime?
   createdAt   DateTime  @default(now())
