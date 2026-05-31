@@ -7,6 +7,7 @@ import AddBookModal from "@/components/AddBookModal";
 import BookCard from "@/components/BookCard";
 import Indicators from "@/components/Indicators";
 import StarFilter from "@/components/StarFilter";
+import Link from "next/link";
 
 interface Book {
   id: number;
@@ -96,6 +97,13 @@ export default function Home() {
             >
               + Adicionar
             </button>
+            <Link
+              href="/configuracoes"
+              className="border border-gray-200 text-gray-500 px-3 py-2 rounded-xl text-sm hover:bg-gray-100 transition"
+              title="Configurações"
+            >
+              ⚙️
+            </Link>
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
               className="border border-gray-200 text-gray-500 px-3 py-2 rounded-xl text-sm hover:bg-gray-100 transition"

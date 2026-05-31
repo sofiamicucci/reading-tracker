@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import MentionInput from "@/components/MentionInput";
 
 interface Props {
   onClose: () => void;
@@ -276,11 +277,11 @@ export default function AddBookModal({ onClose, onAdded, initialStatus = "want_t
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Indicado por</label>
-              <input
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              <MentionInput
                 value={form.recommendedBy}
-                onChange={(e) => setForm({ ...form, recommendedBy: e.target.value })}
-                placeholder="Nome de quem indicou (opcional)"
+                onChange={(v) => setForm({ ...form, recommendedBy: v })}
+                placeholder="Nome de quem indicou (use @ para mencionar)"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm"
               />
             </div>
             <div>

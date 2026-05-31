@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import MentionInput from "@/components/MentionInput";
+import Link from "next/link";
 
 interface Book {
   id: number;
@@ -20,6 +22,16 @@ interface Book {
 interface Props {
   book: Book;
   onUpdate: () => void;
+}
+
+function renderMentions(text: string) {
+  return text.split(/(@[a-z0-9_]+)/gi).map((part, i) =>
+    /^@[a-z0-9_]+$/i.test(part) ? (
+      <Link key={i} href={`/perfil/${part.slice(1).toLowerCase()}`} className="text-indigo-500 hover:underline font-medium">
+        {part}
+      </Link>
+    ) : part
+  );
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -109,7 +121,7 @@ export default function BookCard({ book, onUpdate }: Props) {
                   <span className="text-xs text-gray-400">📅 {book.yearStarted}</span>
                 )}
                 {book.recommendedBy && (
-                  <span className="text-xs text-gray-400">👤 {book.recommendedBy}</span>
+                  <span className="text-xs text-gray-400">👤 {renderMentions(book.recommendedBy!)}</span>
                 )}
               </div>
             </div>
@@ -215,12 +227,11 @@ export default function BookCard({ book, onUpdate }: Props) {
           {/* Notes */}
           <div>
             <label className="text-sm text-gray-600 block mb-1">Notas pessoais:</label>
-            <textarea
+            <MentionInput
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
-              placeholder="Seus pensamentos sobre o livro..."
+              onChange={setNotes}
+              multiline
+              placeholder="Seus pensamentos sobre o livro... (use @ para mencionar usuários)"
             />
           </div>
 
