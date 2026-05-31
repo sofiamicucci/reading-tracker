@@ -138,9 +138,7 @@ export default async function PerfilPage({
           ))}
         </div>
 
-        <p className="text-center text-xs text-gray-400 mt-8">
-          <Link href="/" className="hover:underline">📚 Minhas Leituras</Link>
-        </p>
+
       </div>
     </main>
   );
